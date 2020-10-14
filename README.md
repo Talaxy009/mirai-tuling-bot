@@ -12,7 +12,7 @@
 
 3. 安装依赖 `npm install`
 
-4. 复制一份 `config.default.json` 修改名字为 `config.json` 后对其进行编辑，设置文件相关说明在此->[点我](https://github.com/Talaxy009/node-tuling-bot/docs/config.md)
+4. 复制一份 `config.default.json` 修改名字为 `config.json` 后对其进行编辑，设置文件相关说明在此->[点我](https://github.com/Talaxy009/node-tuling-bot/blob/master/docs/config.md)
 
 5. 启动 `npm run start`
 
