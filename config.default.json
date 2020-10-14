@@ -1,0 +1,32 @@
+{
+    "cqws": {
+        "host": "127.0.0.1",
+        "port": 6700,
+        "enableAPI": true,
+        "enableEvent": true,
+        "accessToken": "",
+        "reconnection": true,
+        "reconnectionAttempts": 10,
+        "reconnectionDelay": 5000
+    },
+    "bot": {
+        "admin": -1,
+        "Apikey": "",
+        "PerQQLimit": 250,
+        "needAt": true,
+        "greet": "哈喽，我准备聊天了！"
+    },
+    "message": {
+        "reqType": 0,
+        "perception": {
+            "inputText": {
+                "text": ""
+            }
+        },
+        "userInfo": {
+            "apiKey": "",
+            "groupId":"",
+            "userId": ""
+        }
+    }
+}

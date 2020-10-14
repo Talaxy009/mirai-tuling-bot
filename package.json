@@ -1,0 +1,26 @@
+{
+  "name": "node-tuling-bot",
+  "version": "1.0.0",
+  "description": "使用图灵API来让你的机器人谈笑风生",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "robot",
+    "tuling",
+    "websocket",
+    "coolq"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Talaxy009/node-tuling-bot.git"
+  },
+  "author": "Talaxy009",
+  "license": "AGPLv3",
+  "dependencies": {
+    "axios": "^0.20.0",
+    "cq-websocket": "^2.1.1"
+  }
+}
