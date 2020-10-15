@@ -46,7 +46,12 @@ function GroupMsg(e, context) {
     let user = context.user_id;
 
     e.stopPropagation();
-    reply(group, user, message, 0);
+    if (isImg(message)) {
+        message = message.substring(58, message.length - 1);
+        reply(group, user, message, 0, 1);
+    } else {
+        reply(group, user, message, 0, 0);
+    };
 };
 
 /** 
@@ -58,7 +63,12 @@ function DiscussMsg(e, context) {
     let user = context.user_id;
 
     e.stopPropagation();
-    reply(discuss, user, message, 1);
+    if (isImg(message)) {
+        message = message.substring(58, message.length - 1);
+        reply(discuss, user, message, 1, 1);
+    } else {
+        reply(discuss, user, message, 1, 0);
+    };
 };
 
 /** 
@@ -69,7 +79,12 @@ function PrivateMsg(e, context) {
     let message = context.message;
 
     e.stopPropagation();
-    reply(null, user, message, 2);
+    if (isImg(message)) {
+        message = message.substring(58, message.length - 1);
+        reply(null, user, message, 2, 1);
+    } else {
+        reply(null, user, message, 2, 0);
+    };
 };
 
 /** 
@@ -77,24 +92,31 @@ function PrivateMsg(e, context) {
 * @param gd 群/讨论组ID 
 * @param id 消息发送者ID
 * @param msg 发送消息
-* @param type 消息类型
+* @param src 消息来源
+* @param type 信息类型
 */
-function reply(gd, id, msg, type) {
-    Msg.perception.inputText.text = msg;
+function reply(gd, id, msg, src, type) {
+    if (type) {
+        Msg.reqType = 1;
+        Msg.perception.inputImage.url = msg;
+    } else {
+        Msg.reqType = 0;
+        Msg.perception.inputText.text = msg;
+    };
     Msg.userInfo.userId = id;
     Msg.userInfo.groupId = gd;
     Axios.post(url, Msg
     ).then(function Send(response) {
         var GotMsg = response.data.results[0].values.text;
         var SendMsg = null;
-        switch (type) {
+        switch (src) {
             case 0:
                 SendMsg = `[CQ:at,qq=${id}]${GotMsg}`;
                 bot('send_group_msg', {
                     group_id: gd,
                     message: SendMsg,
                 });
-                console.log(`${new Date().toLocaleString()} 回复${gd}群, ${id}者:`);
+                console.log(`${new Date().toLocaleString()} 回复${gd}群, ${id}者: ${msg}`);
                 break;
 
             case 1:
@@ -103,7 +125,7 @@ function reply(gd, id, msg, type) {
                     discuss_id: gd,
                     message: SendMsg,
                 });
-                console.log(`${new Date().toLocaleString()} 回复${gd}讨论组, ${id}者:`);
+                console.log(`${new Date().toLocaleString()} 回复${gd}讨论组, ${id}者: ${msg}`);
                 break;
 
             default:
@@ -112,11 +134,19 @@ function reply(gd, id, msg, type) {
                     user_id: id,
                     message: SendMsg,
                 });
-                console.log(`${new Date().toLocaleString()} 回复私聊${id}者:`);
+                console.log(`${new Date().toLocaleString()} 回复私聊${id}者: ${msg}`);
                 break;
         };
         console.log(GotMsg);
     }).catch(function (error) {
         console.log(error);
     });
+};
+
+/**
+ * 判断消息是否为图片
+ * @param str 接收的消息
+ */
+function isImg(str) {
+    return (str.substring(0, 9) == "[CQ:image");
 };

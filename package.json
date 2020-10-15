@@ -1,6 +1,6 @@
 {
   "name": "node-tuling-bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "使用图灵API来让你的机器人谈笑风生",
   "main": "index.js",
   "scripts": {

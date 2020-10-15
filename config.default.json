@@ -21,11 +21,14 @@
         "perception": {
             "inputText": {
                 "text": ""
+            },
+            "inputImage": {
+                "url": ""
             }
         },
         "userInfo": {
             "apiKey": "",
-            "groupId":"",
+            "groupId": "",
             "userId": ""
         }
     }
