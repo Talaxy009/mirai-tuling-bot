@@ -93,7 +93,7 @@ function PrivateMsg(e, context) {
 * @param id 消息发送者ID
 * @param msg 发送消息
 * @param src 消息来源
-* @param type 信息类型
+* @param type 消息类型
 */
 function reply(gd, id, msg, src, type) {
     if (type) {
@@ -142,7 +142,7 @@ function reply(gd, id, msg, src, type) {
                 console.log(`${new Date().toLocaleString()} 回复私聊${id}者: ${msg}`);
                 break;
         };
-        console.log(GotMsg + GotUrl);
+        console.log(GotMsg + `${GotUrl == null ? '' : '\n' + GotUrl}`);
     }).catch(function (error) {
         console.log(error);
     });
