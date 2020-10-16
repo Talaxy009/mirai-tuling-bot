@@ -26,11 +26,14 @@
         "perception": {
             "inputText": {
                 "text": ""
+            },
+            "inputImage": {
+                "url": ""
             }
         },
         "userInfo": {
             "apiKey": "",
-            "groupId":"",
+            "groupId": "",
             "userId": ""
         }
     }
@@ -69,4 +72,4 @@
 
 ## message 分支
 
-不要修改，这是机器人发送请求所用的格式，我只是省力保存在这了 ( = v =)b
+不要修改，这是机器人发送请求所用的格式，我只是省力保存在这了 ( = v =)ok
