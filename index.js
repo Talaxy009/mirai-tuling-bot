@@ -107,11 +107,16 @@ function reply(gd, id, msg, src, type) {
     Msg.userInfo.groupId = gd;
     Axios.post(url, Msg
     ).then(function Send(response) {
-        var GotMsg = response.data.results[0].values.text;
-        var SendMsg = null;
+        var GotMsg, GotUrl, SendMsg = null;
+        if (response.data.results.length == 1) {
+            var GotMsg = response.data.results[0].values.text;
+        } else {
+            var GotUrl = response.data.results[0].values.url;
+            var GotMsg = response.data.results[1].values.text;
+        }
         switch (src) {
             case 0:
-                SendMsg = `[CQ:at,qq=${id}]${GotMsg}`;
+                SendMsg = `[CQ:at,qq=${id}]${GotMsg}${GotUrl == null ? '' : '\n' + GotUrl}`;
                 bot('send_group_msg', {
                     group_id: gd,
                     message: SendMsg,
@@ -120,7 +125,7 @@ function reply(gd, id, msg, src, type) {
                 break;
 
             case 1:
-                SendMsg = `[CQ:at,qq=${id}]${GotMsg}`;
+                SendMsg = `[CQ:at,qq=${id}]${GotMsg}${GotUrl == null ? '' : '\n' + GotUrl}`;
                 bot('send_discuss_msg', {
                     discuss_id: gd,
                     message: SendMsg,
@@ -129,7 +134,7 @@ function reply(gd, id, msg, src, type) {
                 break;
 
             default:
-                SendMsg = `${GotMsg}`;
+                SendMsg = `${GotMsg}${GotUrl == null ? '' : '\n' + GotUrl}`;
                 bot('send_private_msg', {
                     user_id: id,
                     message: SendMsg,
@@ -137,7 +142,7 @@ function reply(gd, id, msg, src, type) {
                 console.log(`${new Date().toLocaleString()} 回复私聊${id}者: ${msg}`);
                 break;
         };
-        console.log(GotMsg);
+        console.log(GotMsg + GotUrl);
     }).catch(function (error) {
         console.log(error);
     });
