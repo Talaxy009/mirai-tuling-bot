@@ -12,12 +12,16 @@
 
 3. 安装依赖 `npm install`
 
-4. 复制一份 `config.default.json` 修改名字为 `config.json` 后对其进行编辑，设置文件相关说明在此->[点我](https://github.com/Talaxy009/node-tuling-bot/blob/master/docs/config.md)
+4. 复制一份 `config.default.json` 修改名字为 `config.json` 后对其进行编辑，设置文件相关说明在此 → [点我](https://github.com/Talaxy009/node-tuling-bot/blob/master/docs/config.md)
 
 5. 启动 `npm run start`
 
 ## TODO 🕊
 
-- 实装单次QQ限制调用次数功能
+~~划线~~为已完成，🕊为完成部分
+
+- ~~实装单次QQ限制调用次数功能~~
 
 - 支持更多的图灵机器人功能 🕊
+
+→ 目前已实现接收图片和发送 Url 功能，其余功能由于只有免费版图灵暂时无法实现

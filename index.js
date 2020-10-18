@@ -6,8 +6,38 @@ var url = "http://openapi.tuling123.com/openapi/api/v2";
 var Msg = config.message;
 Msg.userInfo.apiKey = config.bot.Apikey;
 
+/**
+ * 调用次数记录
+ * @class Logger
+ */
+class Logger {
+    constructor() {
+        this.chattimes = [];
+        this.date = new Date().getDate();
 
-//连接
+        //每日初始化
+        setInterval(() => {
+            let nowDate = new Date().getDate();
+            if (this.date != nowDate) {
+                this.date = nowDate;
+                this.chattimes = [];
+            }
+        }, 60000);
+    }
+
+    //判断是否达到聊天限制次数
+    canChat(u, limit) {
+        if (limit == 0) return true;
+        if (!this.chattimes[u]) this.chattimes[u] = 0;
+        if (this.chattimes[u]++ < limit) return true;
+        return false;
+    }
+}
+
+var logger = new Logger();
+
+
+//连接相关
 bot.connect();
 
 bot.on('socket.connecting', function (wsType, attempts) {
@@ -16,6 +46,7 @@ bot.on('socket.connecting', function (wsType, attempts) {
     console.log(new Date().toLocaleString() + ' 第%d次连接[%s]成功! ( = v =)b', attempts, wsType);
     if (config.bot.admin > 0 && wsType === '/api') {
         setTimeout(() => {
+            console.log(`APIKey: ${config.bot.Apikey}\n聊天限制次数: ${config.bot.PerQQLimit}/QQ\n是否需要@: ${config.bot.needAt ? '是' : '否'}`);
             bot('send_private_msg', {
                 user_id: config.bot.admin,
                 message: `${config.bot.greet}`
@@ -28,129 +59,106 @@ bot.on('socket.connecting', function (wsType, attempts) {
 
 //设置监听
 if (config.bot.needAt) {
-    bot.on("message.group.@.me", GroupMsg);
-    bot.on("message.discuss.@.me", DiscussMsg);
-    bot.on("message.private", PrivateMsg);
+    bot.on("message.group.@.me", GetMsg);
+    bot.on("message.discuss.@.me", GetMsg);
+    bot.on("message.private", GetMsg);
 } else {
-    bot.on("message.group", GroupMsg);
-    bot.on("message.discuss", DiscussMsg);
-    bot.on("message.private", PrivateMsg);
+    bot.on("message.group", GetMsg);
+    bot.on("message.discuss", GetMsg);
+    bot.on("message.private", GetMsg);
 };
 
-/** 
-* 接受群消息
-*/
-function GroupMsg(e, context) {
-    let group = context.group_id;
-    let message = context.message;
-    let user = context.user_id;
 
+/**
+ * 获取消息
+ * @param {object} e 
+ * @param {object} context 
+ */
+function GetMsg(e, context) {
     e.stopPropagation();
+
+    //判断聊天次数
+    if (!logger.canChat(context.user_id, config.bot.PerQQLimit)) {
+        SendMsg(context, config.bot.refuse);
+        return;
+    }
+
+    //判断群组消息
+    if (context.group_id) {
+        Msg.userInfo.groupId = context.group_id;
+    } else if (context.discuss_id) {
+        Msg.userInfo.groupId = context.discuss_id;
+    }
+
+    Msg.userInfo.userId = context.user_id;
+    var message = context.message;
+
+    //判断消息类型
     if (isImg(message)) {
-        message = message.substring(58, message.length - 1);
-        reply(group, user, message, 0, 1);
-    } else {
-        reply(group, user, message, 0, 0);
-    };
-};
-
-/** 
-* 接受讨论组消息
-*/
-function DiscussMsg(e, context) {
-    let discuss = context.discuss_id;
-    let message = context.message;
-    let user = context.user_id;
-
-    e.stopPropagation();
-    if (isImg(message)) {
-        message = message.substring(58, message.length - 1);
-        reply(discuss, user, message, 1, 1);
-    } else {
-        reply(discuss, user, message, 1, 0);
-    };
-};
-
-/** 
-* 接受私聊消息
-*/
-function PrivateMsg(e, context) {
-    let user = context.user_id;
-    let message = context.message;
-
-    e.stopPropagation();
-    if (isImg(message)) {
-        message = message.substring(58, message.length - 1);
-        reply(null, user, message, 2, 1);
-    } else {
-        reply(null, user, message, 2, 0);
-    };
-};
-
-/** 
-* 发送消息&获取回复&发送回复
-* @param gd 群/讨论组ID 
-* @param id 消息发送者ID
-* @param msg 发送消息
-* @param src 消息来源
-* @param type 消息类型
-*/
-function reply(gd, id, msg, src, type) {
-    if (type) {
         Msg.reqType = 1;
-        Msg.perception.inputImage.url = msg;
+        Msg.perception.inputImage.url = message.substring(58, message.length - 1);
     } else {
         Msg.reqType = 0;
-        Msg.perception.inputText.text = msg;
-    };
-    Msg.userInfo.userId = id;
-    Msg.userInfo.groupId = gd;
+        Msg.perception.inputText.text = message;
+    }
+
+    //调用API
     Axios.post(url, Msg
-    ).then(function Send(response) {
-        var GotMsg, GotUrl, SendMsg = null;
+    ).then(function HandleMsg(response) {
+        var GotMsg;
         if (response.data.results.length == 1) {
-            var GotMsg = response.data.results[0].values.text;
+            GotMsg = response.data.results[0].values.text;
         } else {
-            var GotUrl = response.data.results[0].values.url;
-            var GotMsg = response.data.results[1].values.text;
+            GotMsg = `${response.data.results[1].values.text}\n${response.data.results[0].values.url}`;
+            Msg.perception.inputImage = ''; //清空图片URL
         }
-        switch (src) {
-            case 0:
-                SendMsg = `[CQ:at,qq=${id}]${GotMsg}${GotUrl == null ? '' : '\n' + GotUrl}`;
-                bot('send_group_msg', {
-                    group_id: gd,
-                    message: SendMsg,
-                });
-                console.log(`${new Date().toLocaleString()} 回复${gd}群, ${id}者: ${msg}`);
-                break;
-
-            case 1:
-                SendMsg = `[CQ:at,qq=${id}]${GotMsg}${GotUrl == null ? '' : '\n' + GotUrl}`;
-                bot('send_discuss_msg', {
-                    discuss_id: gd,
-                    message: SendMsg,
-                });
-                console.log(`${new Date().toLocaleString()} 回复${gd}讨论组, ${id}者: ${msg}`);
-                break;
-
-            default:
-                SendMsg = `${GotMsg}${GotUrl == null ? '' : '\n' + GotUrl}`;
-                bot('send_private_msg', {
-                    user_id: id,
-                    message: SendMsg,
-                });
-                console.log(`${new Date().toLocaleString()} 回复私聊${id}者: ${msg}`);
-                break;
-        };
-        console.log(GotMsg + `${GotUrl == null ? '' : '\n' + GotUrl}`);
-    }).catch(function (error) {
-        console.log(error);
+        SendMsg(context, GotMsg);
     });
-};
+
+    return;
+}
+
+
+/**
+ * 发送消息
+ * @param {object} context 消息对象
+ * @param {string} SendMsg 发送消息
+ */
+function SendMsg(context, SendMsg) {
+    user = context.user_id;
+    if (context.group_id) {
+        var msg = `[CQ:at,qq=${user}]${SendMsg}`;
+        var gd = context.group_id;
+        bot('send_group_msg', {
+            group_id: gd,
+            message: msg,
+        });
+        console.log(`${new Date().toLocaleString()} 回复${gd}群, ${user}者:\n${msg}`);
+        Msg.userInfo.groupId = ''; //清空群组信息
+    } else if (context.discuss_id) {
+        var msg = `[CQ:at,qq=${id}]${SendMsg}`;
+        var gd = context.discuss_id;
+        bot('send_discuss_msg', {
+            discuss_id: gd,
+            message: msg,
+        });
+        console.log(`${new Date().toLocaleString()} 回复${gd}讨论组, ${user}者:\n${msg}`);
+        Msg.userInfo.groupId = ''; //清空群组信息
+    } else {
+        var msg = `${SendMsg}`;
+        bot('send_private_msg', {
+            user_id: context.user_id,
+            message: msg,
+        });
+        console.log(`${new Date().toLocaleString()} 回复私聊${user}者:\n${msg}`);
+    }
+    return;
+}
+
 
 /**
  * 判断消息是否为图片
- * @param str 接收的消息
+ * @param {string} str 接收的消息
  */
 function isImg(str) {
     return (str.substring(0, 9) == "[CQ:image");

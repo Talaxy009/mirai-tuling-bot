@@ -17,9 +17,10 @@
     "bot": {
         "admin": -1,
         "Apikey": "",
-        "PerQQLimit": 250,
+        "PerQQLimit": 50,
         "needAt": true,
-        "greet": "哈喽，我准备聊天了！"
+        "greet": "哈喽，我准备聊天了！",
+        "refuse": "今天聊得太多了，明天再聊吧~"
     },
     "message": {
         "reqType": 0,
@@ -64,7 +65,7 @@
 
 - ApiKey——你在图灵机器人官网申请的 API
 
-- PerQQLimit——每个 QQ 每天最高聊天次数限制（待实装）
+- PerQQLimit——每个 QQ 每天最高聊天次数限制（若为 0 则不限制）
 
 - needAt——触发机器人聊天是否需要 @
 

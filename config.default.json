@@ -12,9 +12,10 @@
     "bot": {
         "admin": -1,
         "Apikey": "",
-        "PerQQLimit": 250,
+        "PerQQLimit": 50,
         "needAt": true,
-        "greet": "哈喽，我准备聊天了！"
+        "greet": "哈喽，我准备聊天了！",
+        "refuse": "今天聊得太多了，明天再聊吧~"
     },
     "message": {
         "reqType": 0,
