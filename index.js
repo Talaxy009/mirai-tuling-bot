@@ -133,7 +133,7 @@ function SendMsg(context, SendMsg) {
             group_id: gd,
             message: msg,
         });
-        console.log(`${new Date().toLocaleString()} 回复${gd}群, ${user}者:\n${msg}`);
+        console.log(`${new Date().toLocaleString()} 回复${gd}群, ${user}者:\n${SendMsg}`);
         Msg.userInfo.groupId = ''; //清空群组信息
     } else if (context.discuss_id) {
         var msg = `[CQ:at,qq=${id}]${SendMsg}`;
@@ -142,15 +142,14 @@ function SendMsg(context, SendMsg) {
             discuss_id: gd,
             message: msg,
         });
-        console.log(`${new Date().toLocaleString()} 回复${gd}讨论组, ${user}者:\n${msg}`);
+        console.log(`${new Date().toLocaleString()} 回复${gd}讨论组, ${user}者:\n${SendMsg}`);
         Msg.userInfo.groupId = ''; //清空群组信息
     } else {
-        var msg = `${SendMsg}`;
         bot('send_private_msg', {
             user_id: context.user_id,
-            message: msg,
+            message: SendMsg,
         });
-        console.log(`${new Date().toLocaleString()} 回复私聊${user}者:\n${msg}`);
+        console.log(`${new Date().toLocaleString()} 回复私聊${user}者:\n${SendMsg}`);
     }
     return;
 }
