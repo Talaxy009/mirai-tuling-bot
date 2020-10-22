@@ -14,11 +14,15 @@
 
 4. 复制一份 `config.default.json` 修改名字为 `config.json` 后对其进行编辑，设置文件相关说明在此 → [点我](https://github.com/Talaxy009/node-tuling-bot/blob/master/docs/config.md)
 
-5. 启动 `npm run start`
+5. 启动 `npm start`
+
+若一切正常，你应当会收到一个消息，并在控制台内看到一些设置信息
 
 ## TODO 🕊
 
-~~划线~~为已完成，🕊为完成部分
+~~划线~~为已完成，🕊为部分完成
+
+- 实现配置文件热重载
 
 - ~~实装单次QQ限制调用次数功能~~
 
