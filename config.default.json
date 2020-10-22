@@ -15,7 +15,8 @@
         "PerQQLimit": 50,
         "needAt": true,
         "greet": "哈喽，我准备聊天了！",
-        "refuse": "今天聊得太多了，明天再聊吧~"
+        "refuse": "今天聊得太多了，明天再聊吧~",
+        "debug": false
     },
     "message": {
         "reqType": 0,

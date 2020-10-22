@@ -46,7 +46,7 @@ bot.on('socket.connecting', function (wsType, attempts) {
     console.log(new Date().toLocaleString() + ' 第%d次连接[%s]成功! ( = v =)b', attempts, wsType);
     if (config.bot.admin > 0 && wsType === '/api') {
         setTimeout(() => {
-            console.log(`APIKey: ${config.bot.Apikey}\n聊天限制次数: ${config.bot.PerQQLimit}/QQ\n是否需要@: ${config.bot.needAt ? '是' : '否'}`);
+            console.log(`APIKey: ${config.bot.Apikey}\n聊天限制次数: ${config.bot.PerQQLimit}/QQ\n是否需要@: ${config.bot.needAt ? '是' : '否'}\ndebug模式: ${config.bot.debug ? '是' : '否'}`);
             bot('send_private_msg', {
                 user_id: config.bot.admin,
                 message: `${config.bot.greet}`
@@ -88,6 +88,8 @@ function GetMsg(e, context) {
         Msg.userInfo.groupId = context.group_id;
     } else if (context.discuss_id) {
         Msg.userInfo.groupId = context.discuss_id;
+    } else {
+        Msg.userInfo.groupId = "";
     }
 
     Msg.userInfo.userId = context.user_id;
@@ -96,21 +98,29 @@ function GetMsg(e, context) {
     //判断消息类型
     if (isImg(message)) {
         Msg.reqType = 1;
+        Msg.perception.inputText.text = "";
         Msg.perception.inputImage.url = message.substring(58, message.length - 1);
     } else {
         Msg.reqType = 0;
         Msg.perception.inputText.text = message;
+        Msg.perception.inputImage.url = "";
     }
 
     //调用API
     Axios.post(url, Msg
     ).then(function HandleMsg(response) {
         var GotMsg;
+        //debug模式
+        if (config.bot.debug) {
+            console.log(`\n发送消息:`);
+            console.log(Msg);
+            console.log(`接收消息:`);
+            console.log(response.data.results);
+        }
         if (response.data.results.length == 1) {
             GotMsg = response.data.results[0].values.text;
         } else {
             GotMsg = `${response.data.results[1].values.text}\n${response.data.results[0].values.url}`;
-            Msg.perception.inputImage = ''; //清空图片URL
         }
         SendMsg(context, GotMsg);
     });
@@ -134,7 +144,6 @@ function SendMsg(context, SendMsg) {
             message: msg,
         });
         console.log(`${new Date().toLocaleString()} 回复${gd}群, ${user}者:\n${SendMsg}`);
-        Msg.userInfo.groupId = ''; //清空群组信息
     } else if (context.discuss_id) {
         var msg = `[CQ:at,qq=${id}]${SendMsg}`;
         var gd = context.discuss_id;
@@ -143,7 +152,6 @@ function SendMsg(context, SendMsg) {
             message: msg,
         });
         console.log(`${new Date().toLocaleString()} 回复${gd}讨论组, ${user}者:\n${SendMsg}`);
-        Msg.userInfo.groupId = ''; //清空群组信息
     } else {
         bot('send_private_msg', {
             user_id: context.user_id,

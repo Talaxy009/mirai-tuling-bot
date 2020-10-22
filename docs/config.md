@@ -20,7 +20,8 @@
         "PerQQLimit": 50,
         "needAt": true,
         "greet": "哈喽，我准备聊天了！",
-        "refuse": "今天聊得太多了，明天再聊吧~"
+        "refuse": "今天聊得太多了，明天再聊吧~",
+        "debug": false
     },
     "message": {
         "reqType": 0,
@@ -72,6 +73,8 @@
 - greet——机器人连接成功后向管理员发送的消息
 
 - refuse——达到聊天次数上限后触发的回复
+
+- debug——是否开启 debug 模式，此选项会在控制台内显示每次聊天发送和接受具体消息
 
 ## message 分支
 
