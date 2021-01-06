@@ -94,6 +94,7 @@ function GetMsg(message) {
     switch (type) {
         case "GroupMessage":
             if (config.bot.needAt && !at.includes(botQQ)) {
+                Clean(PostBody);
                 return;
             }
             PostBody.userInfo.groupId = sender.group.id;

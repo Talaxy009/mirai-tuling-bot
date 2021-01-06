@@ -1,6 +1,6 @@
 {
   "name": "mirai-tuling-bot",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "使用图灵API来让你的机器人谈笑风生",
   "main": "index.js",
   "scripts": {
