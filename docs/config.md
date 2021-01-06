@@ -4,20 +4,16 @@
 
 ``` json
 {
-    "cqws": {
-        "host": "127.0.0.1",
-        "port": 6700,
-        "enableAPI": true,
-        "enableEvent": true,
-        "accessToken": "",
-        "reconnection": true,
-        "reconnectionAttempts": 10,
-        "reconnectionDelay": 5000
+    "mirai": {
+        "host": "http://127.0.0.1:8080",
+        "authKey": "",
+        "qq": 123456,
+        "enableWebsocket": false
     },
     "bot": {
-        "admin": -1,
-        "Apikey": "",
-        "PerQQLimit": 50,
+        "admin": 0,
+        "apikey": "",
+        "perQQLimit": 50,
         "needAt": true,
         "greet": "哈喽，我准备聊天了！",
         "refuse": "今天聊得太多了，明天再聊吧~",
@@ -42,23 +38,15 @@
 }
 ```
 
-## cqws 分支（连接相关，一般不需要修改）
+## mirai 分支（连接相关）
 
-- host——websocket 服务器地址
+- host——mirai-api-http 的地址和端口，默认是 `http://127.0.0.1:8080`
 
-- port——websocket 服务器端口
+- authKey——mirai-api-http 的 authKey（建议手动指定）
 
-- enableAPI——启用 API
+- qq——当前 BOT 对应的 QQ 号
 
-- enableEvent——启用 EVENT
-
-- accessToken——连接令牌
-
-- reconnection——是否重连
-
-- reconnectionAttempts——尝试重连次数
-
-- reconnectionDelay——每次重连尝试间隔
+- enableWebsocket——是否启用 Websocket（需要和 mirai-api-http 的设置一致）
 
 ## bot 分支（机器人设置相关）
 

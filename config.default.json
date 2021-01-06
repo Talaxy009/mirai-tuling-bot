@@ -1,18 +1,14 @@
 {
-    "cqws": {
-        "host": "127.0.0.1",
-        "port": 6700,
-        "enableAPI": true,
-        "enableEvent": true,
-        "accessToken": "",
-        "reconnection": true,
-        "reconnectionAttempts": 10,
-        "reconnectionDelay": 5000
+    "mirai": {
+        "host": "http://127.0.0.1:8080",
+        "authKey": "",
+        "qq": 123456,
+        "enableWebsocket": false
     },
     "bot": {
-        "admin": -1,
-        "Apikey": "",
-        "PerQQLimit": 50,
+        "admin": 0,
+        "apikey": "",
+        "perQQLimit": 50,
         "needAt": true,
         "greet": "哈喽，我准备聊天了！",
         "refuse": "今天聊得太多了，明天再聊吧~",

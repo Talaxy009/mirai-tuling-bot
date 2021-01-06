@@ -1,10 +1,13 @@
 const { default: Axios } = require('axios');
-const { CQWebSocket } = require('cq-websocket');
+const Mirai = require('node-mirai-sdk');
+const { Image } = require('node-mirai-sdk/src/MessageComponent');
+const { Plain, At } = Mirai.MessageComponent;
 const config = require('./config.json');
-const bot = new CQWebSocket(config.cqws);
-var url = "http://openapi.tuling123.com/openapi/api/v2";
-var Msg = config.message;
-Msg.userInfo.apiKey = config.bot.Apikey;
+const bot = new Mirai(config.mirai);
+const url = "http://openapi.tuling123.com/openapi/api/v2";
+const botQQ = config.mirai.qq;
+let PostBody = config.message;
+PostBody.userInfo.apiKey = config.bot.apikey;
 
 /**
  * 调用次数记录
@@ -15,7 +18,7 @@ class Logger {
         this.chattimes = [];
         this.date = new Date().getDate();
 
-        //每日初始化
+        // 每日初始化
         setInterval(() => {
             let nowDate = new Date().getDate();
             if (this.date != nowDate) {
@@ -25,7 +28,7 @@ class Logger {
         }, 60000);
     }
 
-    //判断是否达到聊天限制次数
+    // 判断是否达到聊天限制次数
     canChat(u, limit) {
         if (limit == 0) return true;
         if (!this.chattimes[u]) this.chattimes[u] = 0;
@@ -36,137 +39,113 @@ class Logger {
 
 var logger = new Logger();
 
+// auth 认证
+bot.onSignal('authed', () => {
+    console.log(`${new Date().toLocaleString()} 通过: ${bot.sessionKey} 认证中···`);
+    bot.verify();
+});
 
-//连接相关
-bot.connect();
-
-bot.on('socket.connecting', function (wsType, attempts) {
-    console.log(new Date().toLocaleString() + ' 尝试第%d次连接[%s]中···', attempts, wsType,)
-}).on('socket.connect', function (wsType, sock, attempts) {
-    console.log(new Date().toLocaleString() + ' 第%d次连接[%s]成功! ( = v =)b', attempts, wsType);
-    if (config.bot.admin > 0 && wsType === '/api') {
-        setTimeout(() => {
-            console.log(`APIKey: ${config.bot.Apikey}\n聊天限制次数: ${config.bot.PerQQLimit}/QQ\n是否需要@: ${config.bot.needAt ? '是' : '否'}\ndebug模式: ${config.bot.debug ? '是' : '否'}`);
-            bot('send_private_msg', {
-                user_id: config.bot.admin,
-                message: `${config.bot.greet}`
-            });
-        }, 1000)
+// session 校验回调
+bot.onSignal('verified', () => {
+    let messageChain = [{ type: 'Plain', text: config.bot.greet }]
+    if (config.bot.admin) {
+        bot.sendFriendMessage(messageChain, config.bot.admin);
     }
-}).on('socket.failed', function (wsType, attempts) {
-    console.log(new Date().toLocaleString() + ' 第%d次连接失败[%s]', attempts, wsType)
-})
+    console.log(`${new Date().toLocaleString()} 通过: ${bot.sessionKey} 认证成功!\n`);
+    console.log(`APIKey: ${config.bot.apikey}\n聊天限制次数: ${config.bot.perQQLimit}/QQ\n是否需要@: ${config.bot.needAt ? '是' : '否'}\ndebug模式: ${config.bot.debug ? '是' : '否'}\n`);
+});
 
-//设置监听
-if (config.bot.needAt) {
-    bot.on("message.group.@.me", GetMsg);
-    bot.on("message.discuss.@.me", GetMsg);
-    bot.on("message.private", GetMsg);
-} else {
-    bot.on("message.group", GetMsg);
-    bot.on("message.discuss", GetMsg);
-    bot.on("message.private", GetMsg);
-};
+// 设置监听
+bot.onMessage(GetMsg);
+bot.listen('all');
 
+// 退出前向 mirai-http-api 发送释放指令
+process.on('exit', () => {
+    bot.release();
+});
 
 /**
  * 获取消息
- * @param {object} e 
- * @param {object} context 
+ * @param {object} message 消息对象
  */
-function GetMsg(e, context) {
-    e.stopPropagation();
+function GetMsg(message) {
+    const { type, sender, messageChain, reply } = message;
 
-    //判断聊天次数
-    if (!logger.canChat(context.user_id, config.bot.PerQQLimit)) {
-        SendMsg(context, config.bot.refuse);
+    // 判断消息类型
+    let at = [];
+    let replyType = false;
+    messageChain.forEach(chain => {
+        switch (chain.type) {
+            case "At":
+                at.push(At.value(chain).target);
+                break;
+            case "Plain":
+                PostBody.perception.inputText.text = Plain.value(chain);
+                break;
+            case "Image":
+                PostBody.perception.inputImage.url = Image.value(chain).url;
+                PostBody.reqType = 1;
+                break;
+            default:
+                break;
+        }
+    });
+
+    switch (type) {
+        case "GroupMessage":
+            if (config.bot.needAt && !at.includes(botQQ)) {
+                return;
+            }
+            PostBody.userInfo.groupId = sender.group.id;
+            PostBody.userInfo.userId = sender.id;
+            replyType = true;
+            break;
+        case "FriendMessage":
+            PostBody.userInfo.groupId = "";
+            PostBody.userInfo.userId = sender.id;
+            replyType = false;
+            break;
+    }
+
+    // 判断聊天次数
+    if (!logger.canChat(sender.id, config.bot.perQQLimit)) {
+        reply(config.bot.refuse);
         return;
     }
 
-    //判断群组消息
-    if (context.group_id) {
-        Msg.userInfo.groupId = context.group_id;
-    } else if (context.discuss_id) {
-        Msg.userInfo.groupId = context.discuss_id;
-    } else {
-        Msg.userInfo.groupId = "";
-    }
+    // 调用API
+    Axios.post(url, PostBody
+    ).then(response => {
+        let GotMsg;
+        let results = response.data.results;
 
-    Msg.userInfo.userId = context.user_id;
-    var message = context.message;
-
-    //判断消息类型
-    if (isImg(message)) {
-        Msg.reqType = 1;
-        Msg.perception.inputText.text = "";
-        Msg.perception.inputImage.url = message.substring(58, message.length - 1);
-    } else {
-        Msg.reqType = 0;
-        Msg.perception.inputText.text = message;
-        Msg.perception.inputImage.url = "";
-    }
-
-    //调用API
-    Axios.post(url, Msg
-    ).then(function HandleMsg(response) {
-        var GotMsg;
-        //debug模式
-        if (config.bot.debug) {
-            console.log(`\n发送消息:`);
-            console.log(Msg);
-            console.log(`接收消息:`);
-            console.log(response.data.results);
-        }
-        if (response.data.results.length == 1) {
-            GotMsg = response.data.results[0].values.text;
+        if (results.length === 1) {
+            GotMsg = results[0].values.text;
         } else {
-            GotMsg = `${response.data.results[1].values.text}\n${response.data.results[0].values.url}`;
+            GotMsg = `${results[1].values.text}\n${results[0].values.url}`;
         }
-        SendMsg(context, GotMsg);
+
+        // debug模式
+        if (config.bot.debug) {
+            console.log("\n发送消息:");
+            console.log(PostBody);
+            console.log("接收消息:");
+            console.log(results);
+        } else {
+            console.log(`${new Date().toLocaleString()}回复${sender.id}: ${GotMsg}`);
+        }
+
+        bot.reply(GotMsg, message, replyType);
+        Clean(PostBody);
     });
-
     return;
 }
 
-
 /**
- * 发送消息
- * @param {object} context 消息对象
- * @param {string} SendMsg 发送消息
+ * 清除 PostBody
+ * @param {Object} item 清理对象
  */
-function SendMsg(context, SendMsg) {
-    user = context.user_id;
-    if (context.group_id) {
-        var msg = `[CQ:at,qq=${user}]${SendMsg}`;
-        var gd = context.group_id;
-        bot('send_group_msg', {
-            group_id: gd,
-            message: msg,
-        });
-        console.log(`${new Date().toLocaleString()} 回复${gd}群, ${user}者:\n${SendMsg}`);
-    } else if (context.discuss_id) {
-        var msg = `[CQ:at,qq=${id}]${SendMsg}`;
-        var gd = context.discuss_id;
-        bot('send_discuss_msg', {
-            discuss_id: gd,
-            message: msg,
-        });
-        console.log(`${new Date().toLocaleString()} 回复${gd}讨论组, ${user}者:\n${SendMsg}`);
-    } else {
-        bot('send_private_msg', {
-            user_id: context.user_id,
-            message: SendMsg,
-        });
-        console.log(`${new Date().toLocaleString()} 回复私聊${user}者:\n${SendMsg}`);
-    }
-    return;
+function Clean(item) {
+    item.reqType = 0;
+    item.perception.inputText.text = item.perception.inputImage.url = "";
 }
-
-
-/**
- * 判断消息是否为图片
- * @param {string} str 接收的消息
- */
-function isImg(str) {
-    return (str.substring(0, 9) == "[CQ:image");
-};

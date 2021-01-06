@@ -1,26 +1,23 @@
 {
-  "name": "node-tuling-bot",
-  "version": "1.4.0",
+  "name": "mirai-tuling-bot",
+  "version": "2.0.0",
   "description": "使用图灵API来让你的机器人谈笑风生",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
   "keywords": [
-    "robot",
     "tuling",
-    "websocket",
-    "coolq"
+    "mirai-api-http"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Talaxy009/node-tuling-bot.git"
+    "url": "git+https://github.com/Talaxy009/mirai-tuling-bot.git"
   },
   "author": "Talaxy009",
   "license": "AGPLv3",
   "dependencies": {
-    "axios": "^0.20.0",
-    "cq-websocket": "^2.1.1"
+    "axios": "^0.21.1",
+    "node-mirai-sdk": "^0.2.2"
   }
 }
