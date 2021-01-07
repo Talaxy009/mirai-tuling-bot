@@ -1,11 +1,10 @@
-const { default: Axios } = require('axios');
-const Mirai = require('node-mirai-sdk');
-const { Image } = require('node-mirai-sdk/src/MessageComponent');
+const { default: Axios } = require("axios");
+const Mirai = require("node-mirai-sdk");
+const { Image } = require("node-mirai-sdk/src/MessageComponent");
 const { Plain, At } = Mirai.MessageComponent;
-const config = require('./config.json');
+const config = require("./config.json");
 const bot = new Mirai(config.mirai);
 const url = "http://openapi.tuling123.com/openapi/api/v2";
-const botQQ = config.mirai.qq;
 let PostBody = config.message;
 PostBody.userInfo.apiKey = config.bot.apikey;
 
@@ -40,27 +39,37 @@ class Logger {
 var logger = new Logger();
 
 // auth 认证
-bot.onSignal('authed', () => {
-    console.log(`${new Date().toLocaleString()} 通过: ${bot.sessionKey} 认证中···`);
+bot.onSignal("authed", () => {
+    console.log(
+        `${new Date().toLocaleString()} 通过: ${bot.sessionKey} 认证中···`
+    );
     bot.verify();
 });
 
 // session 校验回调
-bot.onSignal('verified', () => {
-    let messageChain = [{ type: 'Plain', text: config.bot.greet }]
+bot.onSignal("verified", () => {
+    let messageChain = [{ type: "Plain", text: config.bot.greet }];
     if (config.bot.admin) {
         bot.sendFriendMessage(messageChain, config.bot.admin);
     }
-    console.log(`${new Date().toLocaleString()} 通过: ${bot.sessionKey} 认证成功!\n`);
-    console.log(`APIKey: ${config.bot.apikey}\n聊天限制次数: ${config.bot.perQQLimit}/QQ\n是否需要@: ${config.bot.needAt ? '是' : '否'}\ndebug模式: ${config.bot.debug ? '是' : '否'}\n`);
+    console.log(
+        `${new Date().toLocaleString()} 通过: ${bot.sessionKey} 认证成功!\n`
+    );
+    console.log(
+        `APIKey: ${config.bot.apikey}\n聊天限制次数: ${
+            config.bot.perQQLimit
+        }/QQ\n是否需要@: ${config.bot.needAt ? "是" : "否"}\ndebug模式: ${
+            config.bot.debug ? "是" : "否"
+        }\n`
+    );
 });
 
 // 设置监听
 bot.onMessage(GetMsg);
-bot.listen('all');
+bot.listen("all");
 
 // 退出前向 mirai-http-api 发送释放指令
-process.on('exit', () => {
+process.on("exit", () => {
     bot.release();
 });
 
@@ -74,7 +83,7 @@ function GetMsg(message) {
     // 判断消息类型
     let at = [];
     let replyType = false;
-    messageChain.forEach(chain => {
+    messageChain.forEach((chain) => {
         switch (chain.type) {
             case "At":
                 at.push(At.value(chain).target);
@@ -93,7 +102,7 @@ function GetMsg(message) {
 
     switch (type) {
         case "GroupMessage":
-            if (config.bot.needAt && !at.includes(botQQ)) {
+            if (config.bot.needAt && !at.includes(bot.qq)) {
                 Clean(PostBody);
                 return;
             }
@@ -115,8 +124,7 @@ function GetMsg(message) {
     }
 
     // 调用API
-    Axios.post(url, PostBody
-    ).then(response => {
+    Axios.post(url, PostBody).then((response) => {
         let GotMsg;
         let results = response.data.results;
 
@@ -133,7 +141,9 @@ function GetMsg(message) {
             console.log("接收消息:");
             console.log(results);
         } else {
-            console.log(`${new Date().toLocaleString()}回复${sender.id}: ${GotMsg}`);
+            console.log(
+                `${new Date().toLocaleString()}回复${sender.id}: ${GotMsg}`
+            );
         }
 
         bot.reply(GotMsg, message, replyType);
