@@ -1,7 +1,6 @@
 const { default: Axios } = require("axios");
 const Mirai = require("node-mirai-sdk");
-const { Image } = require("node-mirai-sdk/src/MessageComponent");
-const { Plain, At } = Mirai.MessageComponent;
+const { Plain, At, Image } = Mirai.MessageComponent;
 const config = require("./config.json");
 const bot = new Mirai(config.mirai);
 const url = "http://openapi.tuling123.com/openapi/api/v2";

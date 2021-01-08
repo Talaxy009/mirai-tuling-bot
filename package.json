@@ -22,7 +22,7 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "axios": "^0.21.1",
-    "node-mirai-sdk": "^0.2.2"
+    "node-mirai-sdk": "^0.2.3"
   },
   "devDependencies": {
     "prettier": "^2.2.1"
